@@ -8,5 +8,5 @@ Es wurde bis jetzt ausschließlich auf dem CC Emu Redux getestet und besitzt noc
 
 Installation:
 Den CC EmuRedux runterladen und eine neue Session erstellen.
-Den ersten Computer die ID 0 zuweisen und auf advanced stellen.
-Dann unter AppData/.ccemuredux/sessions/[Sessionname]/0 alle Dateien, bis auf die startup
+Dann unter AppData/.ccemuredux/sessions/[Sessionname]/0 alle Dateien aus dem Client Orderner in den /0 Ordner ziehen.
+Dann unter AppData/.ccemuredux/sessions/[Sessionname]/1 alle Datein
