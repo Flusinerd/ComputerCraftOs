@@ -10,7 +10,7 @@ while i < 3 do
   term.setCursorPos (10,5)
   local password = read("*")
   if username == "test" and password == "test" then
-    globalusername = test
+    globalusername = "test"
     shell.run("email")
   else
     i = i + 1
