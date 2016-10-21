@@ -1,0 +1,10 @@
+-- Welcome Screen
+shell.run ("Screen")
+term.setCursorPos (22,7)
+write ("---------")
+term.setCursorPos (22,8)
+print ("|Welcome|")
+term.setCursorPos (22,9)
+write ("---------")
+sleep (5)
+shell.run("login") --Login Ausführen

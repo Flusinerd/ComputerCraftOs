@@ -1,0 +1,28 @@
+function Sichtberreich() --Funktion zur festlegung des Sichtberreiches in der Email Liste (Scroll-Funktion)
+ if berreich == nil then --Falls Berreich noch nicht existiert (erste mal aufrufen der Funktion)
+  berreich = {1,18} --Anlegen der Tabelle "berreich". Vergleichbar mit einem Array
+ end
+   event, direction = os.pullEvent("mouse_scroll") --Speichern der Scroll Parameter
+    if direction == - 1 then --Falls nach oben gescrollt wird
+      berreich[1] = (berreich[1] - 1) --Veringern des Sichtberreiches um 1
+      berreich[2] = (berreich[2] - 1)
+    elseif direction == 1 then --Falls nach unten gescrollt wird
+      berreich[1] = (berreich[1] + 1) --Erhöhen des Sichtberreiches um 1
+      berreich[2] = (berreich[2] + 1)
+    end
+end
+while true do
+  Sichtberreich()
+  shell.run("clear")
+  print (berreich[1])
+  print (berreich[2])
+end
+
+
+--Brainfuck
+-- 0
+-- 1
+-- 2
+--Wenn ich 0 öffnen will, dann: Berreich[1] = 0 und y = 2
+--Wenn ich 1 öffnen will, dann: Berreich[1] = 0 und y = 3
+--Wenn ich 1 öffnen will und einmal gescrollt habe, dann: Berreich[1] = 1 und y = 2
