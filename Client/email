@@ -1,0 +1,276 @@
+function save () --Funktion, die eine Nachricht speichert
+  msg = nil
+  id, msg, protocol = rednet.receive (5)
+end
+
+function Login() --Login Funktion
+  serverid = 1 --Initialisieren der Variabelen und erzeugen des Interfaces
+  shell.run ("Screen")
+  term.setCursorPos(1,2)
+  print ("Login:")
+  term.setCursorPos(1,3)
+  print ("Password:")
+  term.setCursorPos(7,2) --Abfrage des User-Inputs
+  username = read()
+  term.setCursorPos(10,3)
+  local password = read("*")
+  rednet.open("right") --Öffnen des rednets
+  rednet.send(serverid, "loginrequest") --Senden des User-Inputs an den Server
+  sleep (1)
+  rednet.send(serverid, username)
+  sleep (1)
+  rednet.send(serverid, password)
+  save() --Warten auf Rückmeldung des Servers
+  if msg == "loggedin" then --Überprüfen, ob der Server "Loggedin" meldet und dann öffnen des Menu. Gegebenfalls ausführen der Wrong Funktion
+    print ("Logged In")
+    sleep(3)
+    Menu()
+  else
+    print ("Login was not correct")
+    wrong ()
+  end
+end
+
+function wrong() --Funktion für falsche Login-Daten
+  shell.run ("Screen") --Erzeugen des Interfaces
+  term.setCursorPos (1,2)
+  print ("Falsche Login-Daten")
+  print ("Neuen account erstellen")
+  print ("Erneut versuchen")
+  local event, button, x, y = os.pullEvent("mouse_click") --Abfrage des Klickens
+  if y == 3 then
+    newaccount () -- Funktion für einen neuen Account
+  elseif y == 4 then
+    Login () --Login Screen
+  end
+end
+
+function newaccount() --Funktion für die Erstellung eines neuen Accounts
+  shell.run ("Screen") --Erzeugen des Interfaces
+  term.setCursorPos (1,2)
+  print ("Neuer Benutzername: ")
+  print ("Neues Passwort: ")
+  term.setCursorPos (1,19)
+  write ("Neuen Account Erstellen")
+  term.setCursorPos (21,2)
+  neuerName = read() --Abfrage des User-Inputs
+  term.setCursorPos (16,3)
+  neuesPasswort = read()
+  local event, button, x, y = os.pullEvent("mouse_click") --Abfrage des Klickens
+  if y == 19 then
+    rednet.send (serverid, "Neuer Account") --Übertragen des Triggerbefehls an den Server
+    sleep (1)
+    rednet.send (serverid, neuerName) --Senden des User-Inputs an den Server
+    sleep (1)
+    rednet.send (serverid, neuesPasswort)
+    save()
+    if msg == "erfolgreich" then --Abfrage ob erstellung erfolgreich
+      shell.run ("Screen")
+      term.setCursorPos (1,2)
+      print ("Neuer account mit dem Benutzername: ".. neuerName.. " erfolgreich erstellt.")
+      print ("Logge dich jetzt ein")
+      sleep (3)
+      Login () --Aufrufen der Login Funktion
+    elseif msg == "bereitsVergeben" then -- Fals der Benutzername schon vergeben ist
+      shell.run("Screen")
+      term.setCursorPos (1,2)
+      print ("Benutzername berreits vergeben, bitte suche dir einen anderen aus")
+      sleep (3)
+      newaccount() -- Erneutes Aufrufen der Funktion
+    end
+  elseif y == 1 and x>50 then
+    shell.run("Shutdown")
+  end
+end
+
+function Menu() --Funktion für das E-Mail Hauptmenü
+  shell.run("Screen") --Erstellen des Interfaces
+  term.setCursorPos(24,1)
+  term.setBackgroundColor (2048)
+  write("EMAIL")
+  term.setBackgroundColor(8)
+  term.setCursorPos(24,2)
+  write("[Send]")
+  term.setCursorPos(24,3)
+  write("[Mails]")
+  local event, button, x, y = os.pullEvent("mouse_click") --Überprüfen des Klickens
+  if y == 2 then
+    Send() --Funktion zum senden einer Email
+  elseif y == 3 then
+    Mails() --Funktion zum Abrufen der Emails
+  elseif y == 1 and x> 50 then
+    shell.run("Shutdown")
+  else
+    Menu() --Dauerschleife für das Menü
+  end
+end
+
+function Send() --Funktion zum Senden einer Email
+  shell.run("Screen") --Erzeugen des Interfaces
+  term.setCursorPos(24,1)
+  term.setBackgroundColor(2048)
+  write("Email Senden")
+  term.setBackgroundColor (8)
+  term.setCursorPos (1,2)
+  write ("Empfänger:")
+  term.setCursorPos (1,19)
+  write ("Senden")
+  term.setCursorPos (1,3)
+  write ("Text:")
+  term.setCursorPos (45,19)
+  write("Abbruch")
+  term.setCursorPos (11,2)
+  local Empfaenger = read() --Abfrage des User-Inputs
+  term.setCursorPos (6,3)
+  local text = read()
+  local event, button, x, y = os.pullEvent ("mouse_click") --Abfrage des Mausklickens
+  if y == 19 and x < 20 then --Falls auf Senden geklickt wird
+    rednet.send (serverid, "nachricht") --Triggerbefehl für den Server
+    sleep (1)
+    rednet.send (serverid, Empfaenger) --Senden des User-Inputs
+    sleep (1)
+    rednet.send (serverid, text)
+    sleep (1)
+    rednet.send (serverid, username)
+    sleep (1)
+  elseif y == 19 and x>20 then --Falls auf Abbruch geklickt wird
+    Menu() --Öffnen des Menüs
+  elseif y == 1 and x>50 then
+    shell.run("Shutdown")
+  end
+  msg = nil --Warten auf Server rückmeldung
+  save()
+  shell.run ("Screen")
+  term.setCursorPos (15,2)
+  if msg == "received" then --Auswerten der Serverrückmeldung
+    write ("Nachricht gesendet")
+  elseif msg == nil then --Falls Server keine Antwort schickt
+    write ("Nachricht nicht angekommen")
+  end
+  sleep (4)
+  Menu() -- Öffnen des Menüs
+end
+
+function Sichtberreich() --Funktion zur festlegung des Sichtberreiches in der Email Liste (Scroll-Funktion)
+ if berreich == nil then --Falls Berreich noch nicht existiert (erste mal aufrufen der Funktion)
+  berreich = {0,16} --Anlegen der Tabelle "berreich". Vergleichbar mit einem Array
+ end
+   event, direction, x, y = os.pullEvent() --Speichern der Scroll Parameter
+    if direction == - 1 and event == "mouse_scroll" then --Falls nach oben gescrollt wird
+      berreich[1] = (berreich[1] - 1) --Veringern des Sichtberreiches um 1
+      berreich[2] = (berreich[2] - 1)
+      if berreich[1] < 0 then
+        berreich = {0,16}
+      end
+    elseif direction == 1 and event =="mouse_scroll" then --Falls nach unten gescrollt wird
+      berreich[1] = (berreich[1] + 1) --Erhöhen des Sichtberreiches um 1
+      berreich[2] = (berreich[2] + 1)
+    elseif event == "mouse_click" and y>1 then
+      darstellen(berreich[1]+y-2)
+    elseif event =="mouse_click" and y==1 and x>50 then
+      shell.run("Shutdown")
+    end
+end
+
+function darstellen(num) -- Funktion die die num.txt darstellt. Dabei ist num ein Parameter der Funktion.
+  shell.run("Screen") --Bilschirm löschen
+  if fs.exists("Mails/"..num..".txt") then --Überprüfen um num.txt existiert. Das == true kann ausgelassen werden.
+    dir = fs.open ("Mails/"..num..".txt", "r") --Öffnen der Mail und speichern des Handlers als dir
+    print ("Sender: " ..dir.readLine(1)) --Auslesen des Senders und darstellen
+    print ("Nachricht: " ..dir.readLine (2)) --Auslesen der Nachricht und darstellen
+    term.setCursorPos (1, 19) --Erzeugen des Menu-Buttons
+    write ("Menu")
+    term.setCursorPos (47,19)
+    write ("Liste")
+    dir.close() --Schließen des Handlers !!GANZ WICHTIG!!
+    local event, button, x, y = os.pullEvent ("mouse_click") --Überprüfen ob auf Menu geklickt wird
+    if y == 19 and x<20 then
+      Menu() -- Darstellen des Menüs
+    elseif y == 19 and x>= 20 then
+      EmailListe()
+    else -- Nächste Email darstellen. Todo: Nächste/Voherige Buttons
+      darstellen (num + 1)
+    end
+  else
+    EmailListe() -- Falls die num.txt nicht existiert öffnen der Email Liste
+  end
+end
+
+
+function EmailListe() -- Funktion zum Listen der Emails
+  z = nil -- init der Variable z
+  shell.run("Screen")
+  for z=0, 16 do
+    if fs.exists ("Mails/"..z..".txt") == true then
+      dir = fs.open ("Mails/"..z..".txt", "r")
+      write ("Nachricht "..z)
+      print ("     Von "..(dir.readLine(1)))
+    end
+  end
+  term.setCursorPos (1,19)
+  write("Menu")
+  while true do --Dauerschleife
+    Sichtberreich()
+    shell.run("Screen")
+    for z=berreich[1], berreich[2] do
+      if fs.exists ("Mails/"..z..".txt") == true then
+        dir = fs.open ("Mails/"..z..".txt", "r")
+        write ("Nachricht "..z)
+        print ("     Von "..(dir.readLine(1)))
+      end
+    end
+    term.setCursorPos (1,19)
+    write("Menu")
+    if event =="mouse_click" and y == 19 then
+      Menu()
+    end
+  end
+end
+
+function Mails() -- Funktion um die Emails vom Server zu laden
+  shell.run ("Screen") --Erzeugen des Interfaces
+  local x = 0
+  term.setCursorPos (24,2)
+  print("E-Mails")
+  term.setCursorPos (1,3)
+  print ("Lade E-Mails vom Server ...")
+  rednet.send (serverid, "refresh") --Senden der Triggerbefehls an den Server
+  sleep (1)
+  rednet.send (serverid, username) --Senden des Usernames an den Server
+  while true do --Endlosschleife
+    save() --Empfangen der Nachricht vom server
+    if msg == "ende" then --Falls der Triggerbefehl ende vom server kommt, dann beenden der Endlosschleife
+      break --Beenden der Endlosschleife
+    else
+      sender = msg -- Speichern des senders in einer Variabelen
+      save() --Empfangen des nöchsten Teils der nachricht
+      text = msg -- Speichern des Textes in einer Variabelen
+      dir = fs.open ("Mails/"..x..".txt", "w") --Öffnen der  Datei "Mails/x.txt"
+      dir.writeLine (sender) --Schreiben des Senders und des Textes in die x.txt
+      dir.writeLine (text)
+      dir.close() --Schließen der Datei
+      x = x + 1 --Erhöhung von x um 1
+    end
+  end
+  EmailListe() -- Ausführen der EmailListe Funktion
+end
+
+function clock() --Uhr oben links
+    term.setCursorPos (1,1) --Cursor oben links
+    term.setBackgroundColor(2048)
+    time = os.time() -- Uhrzeit
+    formatedtime = textutils.formatTime(time, true) --Formatierte Uhrzeit
+    write(formatedtime) --Ausgeben der Uhrzeit
+    term.setBackgroundColor(8)
+    term.setCursorPos(1,2)
+end
+
+-- Das Programm ;)
+Login()
+
+-- todo: Erstellen einer Email Löschen Funktion
+--       Betreff einfügen
+--       Settings (Ändern der Hintergrundfarbe, Textfarbe)
+--       Uhr oben links in der Zeile einbauen
+--       Falls keine Emails vorhanden sind: Keine Emails vorhanden Nachricht
+--       Shutdown Shell

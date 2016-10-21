@@ -1,0 +1,9 @@
+shell.run ("Screen") --Screen erschaffen
+term. setCursorPos (23,4) --Interface erschaffen
+term.setBackgroundColor (8)
+term.setTextColor (1)
+write ("Booting")
+term.setCursorPos (23,5)
+textutils.slowWrite("-------", 1) --"Ladebalken"
+term.setCursorPos (1,19)
+shell.run ("welcome") --Welcome ausführen
