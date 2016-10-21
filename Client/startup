@@ -6,4 +6,4 @@ write ("Booting")
 term.setCursorPos (23,5)
 textutils.slowWrite("-------", 1) --"Ladebalken"
 term.setCursorPos (1,19)
-shell.run ("welcome") --Welcome ausführen
+shell.run ("login") --Login ausführen
