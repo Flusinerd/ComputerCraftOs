@@ -75,9 +75,14 @@ end
 function refreshrequest() --Funktion um eine fetch-Anfrage zu bearbeiten
   save () --Speichern des Usernames
   refreshUsername = msg
-  refreshDir = fs.open ("Mails/"..refreshUsername.."/list.txt", "r") --Öffnen der list.txt des Users
-  maxrefresh = refreshDir.readAll() --Jede nachricht ist aufsteigend nummerriert. Die höchste Nummer ist in der list.txt gespeichert. Diese wird jetzt
-  refreshDir.close() --Schließen der list.
+  if fs.exists ("Mails/"..refreshUsername.."/list.txt") == false then
+    refreshDir = fs.open ("Mails/"..refreshUsername.."/list.txt", "w")
+    refreshDir.writeLine ("0")
+    refreshDir.close()
+  end
+    refreshDir = fs.open ("Mails/"..refreshUsername.."/list.txt", "r") --Öffnen der list.txt des Users
+    maxrefresh = refreshDir.readAll() --Jede nachricht ist aufsteigend nummerriert. Die höchste Nummer ist in der list.txt gespeichert. Diese wird jetzt
+    refreshDir.close() --Schließen der list.
   x = 0 --Initialisieren der Variable x und definieren als 0
   while x < (maxrefresh + 2) do -- Solange x nicht die maximale Nachrichtnummer überschreitet
     if fs.exists("Mails/"..refreshUsername.."/nachricht"..x..".txt") == true then --Überprüfen ob die Nachricht x existiert
