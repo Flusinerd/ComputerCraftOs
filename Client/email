@@ -9,25 +9,41 @@ function Login() --Login Funktion
   term.setCursorPos(1,2)
   print ("Login:")
   term.setCursorPos(1,3)
-  print ("Password:")
-  term.setCursorPos(7,2) --Abfrage des User-Inputs
-  username = read()
-  term.setCursorPos(10,3)
-  local password = read("*")
-  rednet.open("right") --Öffnen des rednets
-  rednet.send(serverid, "loginrequest") --Senden des User-Inputs an den Server
-  sleep (1)
-  rednet.send(serverid, username)
-  sleep (1)
-  rednet.send(serverid, password)
-  save() --Warten auf Rückmeldung des Servers
-  if msg == "loggedin" then --Überprüfen, ob der Server "Loggedin" meldet und dann öffnen des Menu. Gegebenfalls ausführen der Wrong Funktion
-    print ("Logged In")
-    sleep(3)
-    Menu()
-  else
-    print ("Login was not correct")
-    wrong ()
+  print ("Passwort:")
+  term.setCursorPos(1,19)
+  write ("Registrieren")
+  term.setCursorPos(1,18)
+  write ("Einloggen")
+ while true do
+    event, button, x, y = os.pullEvent("mouse_click") --Abfrage, in welche Schaltfläche gecklickt wurde
+    if y == 2 then --Login Feld
+      term.setCursorPos (7,2)
+      username = read()
+    elseif y == 3 then --Passwort Feld
+      term.setCursorPos (10,3)
+      password = read("*")
+    elseif y == 18 then --Login button
+      if username ~= nil and password ~= nil then --Überprüfen ob beide Felder ausgefüllt worden sind
+        rednet.open("right") --Öffnen des rednets
+        rednet.send(serverid, "loginrequest") --Senden des User-Inputs an den Server
+        sleep (1)
+        rednet.send(serverid, username)
+        sleep (1)
+        rednet.send(serverid, password)
+        save() --Warten auf Rückmeldung des Servers
+        if msg == "loggedin" then --Überprüfen, ob der Server "Loggedin" meldet und dann öffnen des Menu. Gegebenfalls ausführen der Wrong Funktion
+          print ("Logged In")
+          sleep(3)
+          Menu()
+        else -- Falsch die Login-Daten falsch waren
+          wrong ()
+        end
+      else --Falls kein Username und/oder Passwort angegeben worden ist
+        wrong()
+      end
+    elseif y==19 then --Registrieren Button
+      newaccount()
+    end
   end
 end
 
@@ -35,13 +51,11 @@ function wrong() --Funktion für falsche Login-Daten
   shell.run ("Screen") --Erzeugen des Interfaces
   term.setCursorPos (1,2)
   print ("Falsche Login-Daten")
-  print ("Neuen account erstellen")
   print ("Erneut versuchen")
+  print ("Eingaben mit Enter bestätigt?")
   local event, button, x, y = os.pullEvent("mouse_click") --Abfrage des Klickens
   if y == 3 then
-    newaccount () -- Funktion für einen neuen Account
-  elseif y == 4 then
-    Login () --Login Screen
+    Login () -- Funktion für einen neuen Account
   end
 end
 
@@ -165,10 +179,12 @@ function Sichtberreich() --Funktion zur festlegung des Sichtberreiches in der Em
     elseif direction == 1 and event =="mouse_scroll" then --Falls nach unten gescrollt wird
       berreich[1] = (berreich[1] + 1) --Erhöhen des Sichtberreiches um 1
       berreich[2] = (berreich[2] + 1)
-    elseif event == "mouse_click" and y>1 then
+    elseif event == "mouse_click" and y>1 and y<19 then
       darstellen(berreich[1]+y-2)
     elseif event =="mouse_click" and y==1 and x>50 then
       shell.run("Shutdown")
+    elseif event =="mouse_click" and y == 19 then --Falls auf Menu gecklickt wird
+      Menu()
     end
 end
 
@@ -180,16 +196,28 @@ function darstellen(num) -- Funktion die die num.txt darstellt. Dabei ist num ei
     print ("Nachricht: " ..dir.readLine (2)) --Auslesen der Nachricht und darstellen
     term.setCursorPos (1, 19) --Erzeugen des Menu-Buttons
     write ("Menu")
-    term.setCursorPos (47,19)
+    term.setCursorPos (47,19) --Erzeugen des Liste Buttons
     write ("Liste")
     dir.close() --Schließen des Handlers !!GANZ WICHTIG!!
+    term.setBackgroundColor (2048) --Erzeugen der Nächste/Voherige Email Pfeile
+    term.setCursorPos(1,1)
+    write("<--")
+    term.setCursorPos(48,1)
+    write("-->")
+    term.setBackgroundColor (8)
     local event, button, x, y = os.pullEvent ("mouse_click") --Überprüfen ob auf Menu geklickt wird
-    if y == 19 and x<20 then
-      Menu() -- Darstellen des Menüs
-    elseif y == 19 and x>= 20 then
+    if y == 19 and x<20 then --Menu Button wurde gecklickt
+      Menu()
+    elseif y == 19 and x>= 20 then --Liste Button wurde gecklickt
       EmailListe()
-    else -- Nächste Email darstellen. Todo: Nächste/Voherige Buttons
+    elseif y==1 and x<20 then --Pfeil zurück wurde gecklickt
+      darstellen (num - 1)
+    elseif y==1 and x>20 and x<52 then --Pfeil vorwärts wurde gecklickt
       darstellen (num + 1)
+    elseif y==1 and x==52 then --Rote X wurde gecklickt (no function)
+      shell.run("Shutdown")
+    else
+      darstellen(num)
     end
   else
     EmailListe() -- Falls die num.txt nicht existiert öffnen der Email Liste
@@ -200,19 +228,8 @@ end
 function EmailListe() -- Funktion zum Listen der Emails
   z = nil -- init der Variable z
   shell.run("Screen")
-  for z=0, 16 do
-    if fs.exists ("Mails/"..z..".txt") == true then
-      dir = fs.open ("Mails/"..z..".txt", "r")
-      write ("Nachricht "..z)
-      print ("     Von "..(dir.readLine(1)))
-    end
-  end
-  term.setCursorPos (1,19)
-  write("Menu")
-  while true do --Dauerschleife
-    Sichtberreich()
-    shell.run("Screen")
-    for z=berreich[1], berreich[2] do
+  if fs.exists ("Mails/0.txt") then
+    for z=0, 16 do
       if fs.exists ("Mails/"..z..".txt") == true then
         dir = fs.open ("Mails/"..z..".txt", "r")
         write ("Nachricht "..z)
@@ -221,10 +238,30 @@ function EmailListe() -- Funktion zum Listen der Emails
     end
     term.setCursorPos (1,19)
     write("Menu")
-    if event =="mouse_click" and y == 19 then
-      Menu()
+    while true do --Dauerschleife
+      Sichtberreich() --Scroll Funktion
+      sleep(0.1)
+      shell.run("Screen") --Erschaffen des Screens
+      for z=berreich[1], berreich[2] do --Schreiben der Liste im Sichtberreich
+        if fs.exists ("Mails/"..z..".txt") == true then
+          dir = fs.open ("Mails/"..z..".txt", "r") --Öffnen der Mail um den Absender auszulesen
+          write ("Nachricht "..z) --Aufsteigende Nummerierung (Durch Betreff ändern)
+          print ("     Von "..(dir.readLine(1))) --Absender darstellen
+        end
+      end
+      term.setCursorPos (1,19) --Menu Button erstellen
+      write("Menu")
     end
+  else --Falls die Datei 0.txt nicht existiert
+    keineEmails()
   end
+end
+
+function keineEmails()
+  shell.run("Screen")
+  print("Es sind keine Emails vorhanden")
+  sleep(3)
+  Menu()
 end
 
 function Mails() -- Funktion um die Emails vom Server zu laden
@@ -267,3 +304,4 @@ end
 
 -- Das Programm ;)
 Login()
+ -- Die 300 knack ich ;)
