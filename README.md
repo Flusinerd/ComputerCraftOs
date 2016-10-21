@@ -15,3 +15,6 @@ Dann unter AppData/.ccemuredux/sessions/[Sessionname]/computer/1/ alle Dateien a
 Dann die Session wieder starten und die beiden Computer sollten starten.
 Das erste Login für den Clienten ist Username: test ,Password: test
 Das zweite Login ist das Login des Email Programms, dort einfach irgendetwas eingeben und dann fragt er, ob ein neuer Benutzer erstellt werden soll.
+
+Link zum CCEmuRedux:
+http://www.computercraft.info/forums2/index.php?/topic/18789-ccemuredux-computercraft-emulator-redux/
