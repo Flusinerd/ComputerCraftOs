@@ -9,8 +9,8 @@ while i < 3 do
   local username = read()
   term.setCursorPos (10,5)
   local password = read("*")
-  if username == "ampel14235" and password == "chargers" then
-    globalusername = ampel14235
+  if username == "test" and password == "test" then
+    globalusername = test
     shell.run("email")
   else
     i = i + 1
